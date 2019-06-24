@@ -3,3 +3,6 @@
 
 # ignore .mod files
 *.mod
+
+# ignore .x files
+*.x
