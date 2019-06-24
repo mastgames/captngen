@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 !   Capt'n General
 !   For a continuum of Q-dependent capture
 !   Simplified, general solar DM capture routine
