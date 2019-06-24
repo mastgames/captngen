@@ -1,15 +1,16 @@
-!   Capt'n General
-!program for testing
-! the good stuff is in gencap.f90
-    PROGRAM GENCAP
+!	Capt'n General
+!	program for testing
+!	the good stuff is in gencap.f90
+
+PROGRAM GENCAP
     implicit none
     character*300 :: modfile
-    double precision :: mx, sigma_0, capped,capped_sd(250),capped_si(250)
-    double precision :: capped_si_spec(250),capped_sd_spec(250)
+    double precision :: mx, sigma_0, capped, capped_sd(250), capped_si(250)
+    double precision :: capped_si_spec(250), capped_sd_spec(250)
     double precision :: maxcapped, nwimpsin, evapRate(50)
     double precision, allocatable :: Etrans(:)
     double precision :: EtransTot
-    integer :: niso, nq, nv, i,nlines
+    integer :: niso, nq, nv, i, nlines
    ! modfile = "solarmodels/struct_b16_agss09_nohead.dat"
    modfile = "solarmodels/struct_b16_agss09_nohead_Tsmoothed.dat" !temeperature smoothed to not nonsense
     ! modfile = "solarmodels/model_gs98_nohead.dat"
@@ -60,5 +61,9 @@
     ! end do
     ! close(55)
 
-    END PROGRAM GENCAP
-!
+    open(55,file = "captest_agss_q2.dat")
+    do i=1,50
+    	write(55,*) 10**(.02*i - 0.02), capped_sd(i),capped_si(i),capped_sd_spec(i),capped_si_spec(i)
+    end do
+    close(55)
+END PROGRAM GENCAP
