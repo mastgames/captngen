@@ -12,7 +12,6 @@
 !   Sticking with notation of 1504.04378. Cite that paper. Or 1605.06502 it's even better.
 !   Reference q0 is 40 MeV, and v0 is 220 km/s.
 
-
     module capmod
     implicit none
     double precision, parameter :: pi=3.141592653, NAvo=6.0221409d23,GMoverR = 1.908e15
@@ -22,11 +21,20 @@
     double precision :: usun , u0 ,rho0,vesc_halo, Rsun
     !this goes with the Serenelli table format
     double precision :: AtomicNumber(29) !29 is is the number from the Serenelli files; if you have fewer it shouldn't matter
+    double precision, parameter :: AtomicNumber_oper(16) = (/ 1., 3., 4., 12., 14., 16., 20., 23., 24., 27., &
+                                                        28., 32., 40., 40., 56., 58./) !the isotopes the catena paper uses
+    character (len=4) :: isotopes(16) = [character(len=4) :: "H","He3","He4","C12","N14","O16","Ne20","Na23","Mg24", &
+                                                                "Al27", "Si28","S32","Ar40","Ca40","Fe56","Ni58"]
+    double precision, parameter :: AtomicSpin_oper(16) = (/ 0.5, 0.5, 0., 0., 1., 0., 0., 1.5, 0., 2.5, &
+                                                        0., 0., 0., 0., 0., 0./) !spins pulled from https://physics.nist.gov/PhysRefData/Handbook/element_name.htm
     double precision, allocatable :: tab_mencl(:),tab_starrho(:),tab_mfr(:,:), tab_r(:), tab_vesc(:), tab_dr(:),tab_T(:),tab_g(:)
 
     ! nq and nv can be -1, 0, 1, 2; this is set in the main program
-    integer :: nq, nv, niso, ri_for_omega, nlines
-    double precision :: mdm, sigma_0
+    integer :: nq, nv, niso, ri_for_omega, nlines, pickIsotope
+    double precision :: mdm, sigma_0, j_chi
+    double precision :: coupling_Array(14,2)
+    double precision :: W_array(8,16,2,2,7)
+    double precision, allocatable :: tab_mfr_oper(:,:)
 
     contains
 
