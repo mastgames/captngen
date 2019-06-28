@@ -1,8 +1,8 @@
 FC=gfortran
 #FOPT= -O3
 FOPT= -O3 -fPIC
-AUXDIR = ./aux
-QAGDIR = ./aux/dqag
+NUMDIR = ./numerical
+QAGDIR = ./numerical/dqag
 WDIR = ./Wfunctions
 RDIR = ./Rfunctions
 
@@ -25,7 +25,7 @@ gencaplib.so: $(MFOBJ) $(TRGOBJ) $(NUMOBJ) $(AUXOBJ) $(QAG) $(WFUNC) $(RFUNC)
 	$(FC) $(FOPT) -shared -o $@ $(MFOBJ) $(TRGOBJ) $(NUMOBJ) $(AUXOBJ) $(QAG) $(WFUNC) $(RFUNC)
 
 
-$(AUXOBJ): %.o : $(AUXDIR)/%.f90
+$(AUXOBJ): %.o : $(NUMDIR)/%.f90
 	$(FC) $(FOPT) -c  $<
 
 $(QAG): %.o : $(QAGDIR)/%.f
@@ -40,7 +40,7 @@ $(TRGOBJ): %.o: %.f90
 $(MAIN): %.o: %.f90
 	$(FC) $(FOPT) -c  $<
 
-$(NUMOBJ): %.o: $(AUXDIR)/%.f
+$(NUMOBJ): %.o: $(NUMDIR)/%.f
 	$(FC) $(FOPT) -c  $<
 
 $(WFUNC): %.o: $(WDIR)/%.f
