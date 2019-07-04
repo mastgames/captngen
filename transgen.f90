@@ -77,8 +77,9 @@ do i = 1,niso
 
 
 end do
-    alphaofR = alphaofR/(sigma_N*sum(nabund,1))
+    !alphaofR = alphaofR/(sigma_N*sum(nabund,1)) ! don't think this is necessary, set later (is zero here)
 
+! need to be done with the effective operator method (nq, nv is the older method, nq=nv=0 is equivalent to c1!=0)
 !compute mean free path
 if ((nq .eq. 0) .and. (nv .eq. 0)) then
   do i = 1,nlines
@@ -138,7 +139,7 @@ dTdR = dTdR/Rsun*dble(decsize-1)
 !this loop does a number of things
 cumint(1) = 0.d0
 cumNx = 0.d0
-
+! this has to be changed to effective operator
 do i = 1,nlines
 
 ! 1) get alpha & kappa averages
