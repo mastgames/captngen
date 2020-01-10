@@ -34,7 +34,7 @@ $(MFOBJ): %.o: %.f90
 	$(FC) $(FOPT) -c  $<
 
 $(MFGPU): %.o: %.f90
-	$(FC) $(FOPT) -c $<
+	pgfortran -Mcuda $(FOPT) -c $<
 
 $(MFCAP): %.o: %.f90
 	$(FC) $(FOPT) -c  $<
