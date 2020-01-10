@@ -72,14 +72,17 @@ module gpumod
         ! yConverse is the conversion factor to go from q^2 to y
         yConverse = 2/3.*((0.91*(mnuc*AtomicNumber_oper(iso))**(1./3)+0.3)*10**-13)**2/(2*hbar*c0)**2
         tally = 0
-        do k=1,7
+        ! do k=1,7
+        k = threadidx%z
+        if (k.lt.8) then
             if (iso.eq.1) then
                 G = GFFI_H_oper(w,vesc,(k-1+qOffset))
             else
                 G = GFFI_A_oper(w,vesc,AtomicNumber_oper(iso),(k-1+qOffset))
             end if
             tally = tally + W_array(Wtype,iso,tau,tauprime,k) * yConverse**(k-1) * G
-        end do
+        end if
+        ! end do
         sumW = tally
     end function sumW
     
@@ -114,8 +117,11 @@ module gpumod
         ! note! coupling constants are 2d array of length 14 (c1,c3,c4...c14,c15) (note absence of c2)
         ! this results in array call of index [1] -> c1, but a call of index [2] -> c3 !
         p_tot = 0.0
-        do tau=1,2
-            do taup=1,2
+        ! do tau=1,2
+        !     do taup=1,2
+        tau = threadidx%x
+        taup = threadidx%y
+        if ((tau.lt.3).and.(taup.lt.3)) then
                 ! RM (c, v2, q2, v2q2)
                 ! c1,c1
                 if ((coupling_Array(1,tau).ne.0).and.(coupling_Array(1,taup).ne.0)) then
@@ -244,8 +250,9 @@ module gpumod
                         ((coupling_Array(7,tau).ne.0).and.(coupling_Array(8,taup).ne.0))) then
                     p_tot = p_tot + 1./mnuc**2 * RS1D(tau,taup,c,j_chi,coupling_Array) * sumW(w,vesc,i,tau,taup,8,1)
                 end if
-            end do
-        end do
+        end if
+        !     end do
+        ! end do
         p_tot = p_tot  * hbar**2 * c0**2
     end function p_tot
 
@@ -285,43 +292,22 @@ module gpumod
             end do
         end if
     end function OMEGA_oper
-
-    ! attributes(global) subroutine captn_kernel(mx_in, jx_in, niso_in, isotopeChosen, capped)
-    !     implicit none
-    !     integer, value :: niso_in, isotopeChosen
-    !     double precision, value :: mx_in, jx_in
-    !     double precision, value :: capped !this is the output
-
-    !     captn_oper(mx_in, jx_in, niso_in, isotopeChosen, capped)
-
-    ! end subroutine captn_kernel
-
-    subroutine captn_oper_gpu(mx_in, jx_in, niso_in, isotopeChosen, capped)
-        implicit none
-        integer :: niso_in, isotopeChosen
-        double precision :: mx_in, jx_in
-        double precision :: capped !this is the output
-        ! dim3 variables to define the grid and block shapes
-        type(dim3) :: dimGrid, dimBlock
-        integer :: r
-
-        dimGrid = dim3( 1, 1, 1 )
-        dimBlock = dim3( 2, 2, 7 )
-        call captn_oper_kernel<<<dimGrid,dimBlock>>>( mx_in, jx_in, niso_in, isotopeChosen, capped )
-        r = cudathreadsynchronize()
-    end subroutine captn_oper_gpu
 end module gpumod
 
-!   this is the integral over R in eqn 2.3 in 1501.03729
-attributes(device) function integrand_oper(u)
-    use gpumod
-    implicit none
-    double precision :: u, w, vesc, integrand_oper, int
-    vesc = tab_vesc(ri_for_omega)
-    w = sqrt(u**2+vesc**2)
-    int = get_vdist(u)/u*w*Omega_oper(ri_for_omega,w)
-    integrand_oper = int
-end function integrand_oper
+! If integrand_oper can be overloaded to have a device and host version that just use a different module,
+! then I can just use both opermod and gpumod in the captnoper integrand? Otherwise need to create device
+! sepcific integrand_oper_dev
+! !get_vdist might need device label
+! !   this is the integral over R in eqn 2.3 in 1501.03729
+! attributes(device) function integrand_oper_dev(u)
+!     use gpumod
+!     implicit none
+!     double precision :: u, w, vesc, integrand_oper, int
+!     vesc = tab_vesc(ri_for_omega)
+!     w = sqrt(u**2+vesc**2)
+!     int = get_vdist(u)/u*w*Omega_oper_dev(ri_for_omega,w)
+!     integrand_oper = int
+! end function integrand_oper_dev
 
 
 !   Need to pass all the operators into the subroutine
@@ -384,4 +370,19 @@ attributes(global) subroutine captn_oper_kernel(mx_in, jx_in, niso_in, isotopeCh
       print*,"Capt'n General says: Oh my, it looks like you are capturing an  &
       infinite amount of dark matter in the Sun. Best to look into that."
     end if
-end subroutine captn_oper
+end subroutine captn_oper_kernel
+
+subroutine captn_oper_gpu(mx_in, jx_in, niso_in, isotopeChosen, capped)
+    implicit none
+    integer :: niso_in, isotopeChosen
+    double precision :: mx_in, jx_in
+    double precision :: capped !this is the output
+    ! dim3 variables to define the grid and block shapes
+    type(dim3) :: dimGrid, dimBlock
+    integer :: r
+
+    dimGrid = dim3( 1, 1, 1 )
+    dimBlock = dim3( 2, 2, 7 )
+    call captn_oper_kernel<<<dimGrid,dimBlock>>>( mx_in, jx_in, niso_in, isotopeChosen, capped )
+    r = cudathreadsynchronize()
+end subroutine captn_oper_gpu
