@@ -1,5 +1,5 @@
-!   Capt'n Oper
-!   Module to house everying specific to captn operator
+!   Capt'n Oper for GPU
+!   Module to house everying specific to captn operator, CUDA Fortran
 !   Neal Avis Kozar 2020
 !   all units of distance: cm
 !   all units of mass/energy : GeV (or GeV/c^2, don't forget)
@@ -7,8 +7,9 @@
 !   Sticking with notation of 1504.04378. Cite that paper. Or 1605.06502 it's even better.
 
 
-module opermod
+module gpumod
     use sharedmod
+    use cudafor
     implicit none
     double precision, parameter :: hbar=6.582d-25
     !this goes with the Serenelli table format
@@ -27,7 +28,7 @@ module opermod
     
     contains
 
-    function GFFI_H_oper(w,vesc,mq)
+    attributes(device) function GFFI_H_oper(w,vesc,mq)
         double precision :: p, mu,w,vesc,u,muplus,GFFI_H_oper,G
         integer mq
         p = mdm*w
@@ -43,7 +44,7 @@ module opermod
         GFFI_H_oper = G
     end function GFFI_H_oper
     
-    function GFFI_A_oper(w,vesc,A,mq)
+    attributes(device) function GFFI_A_oper(w,vesc,A,mq)
         double precision :: p, mu,w,vesc,u,muplus,mN,A,Ei,B
         double precision :: dgamic,GFFI_A_oper
         integer :: mq
@@ -63,7 +64,7 @@ module opermod
     end function GFFI_A_oper
     
     ! breaks the function W into each term, and sums them with the corresponding GFFI
-    function sumW(w,vesc,iso,tau,tauprime,Wtype,qOffset)
+    attributes(device) function sumW(w,vesc,iso,tau,tauprime,Wtype,qOffset)
         double precision :: w,vesc,yConverse,sumW,tally
         integer :: k,iso,tau,tauprime,Wtype,qOffset
         double precision :: G
@@ -85,7 +86,7 @@ module opermod
     ! this is eqn 3.23 in 1501.03729
     ! large sum handled through expansion of R functions
     ! many if statements used to check for terms excluded by choice of constants (c1,c3..c15) = 0
-    function p_tot(w,vesc,i)
+    attributes(device) function p_tot(w,vesc,i)
         double precision :: w,vesc, p_tot
         double precision :: m_T,mu_T,GF
         integer :: i,tau,taup
@@ -250,7 +251,7 @@ module opermod
 
 
     !   this is eqn 2.1 in 1501.03729
-    function OMEGA_oper(rindex,w)
+    attributes(device) function OMEGA_oper(rindex,w)
         double precision :: w, vesc,mu,muplus,u,J, OMEGA_oper
         integer rindex, i
         
@@ -284,78 +285,36 @@ module opermod
             end do
         end if
     end function OMEGA_oper
-end module opermod
 
-subroutine captn_init_oper()
-    use opermod
-    implicit none
-    integer :: i, j, k, l, m
-    character (len=2) :: terms(7) = [character(len=2) :: "y0", "y1", "y2", "y3", "y4", "y5", "y6"]
-    real :: WM, WS2, WS1, WP2, WMP2, WP1, WD, WS1D
-    
-    ! tab_mfr_oper is allocated in the get_solar_params subroutine
-    ! take the regular array tab_mfr and extract the isotopes used in the 1501.03729 paper (otherwise indices won't match on arrays)
-    do i=1,nlines
-        tab_mfr_oper(i,1) = tab_mfr(i,1)
-        tab_mfr_oper(i,2) = tab_mfr(i,3)
-        tab_mfr_oper(i,3) = tab_mfr(i,2)
-        tab_mfr_oper(i,4) = tab_mfr(i,4)
-        tab_mfr_oper(i,5) = tab_mfr(i,6)
-        tab_mfr_oper(i,6) = tab_mfr(i,8)
-        tab_mfr_oper(i,7) = tab_mfr(i,11)
-        tab_mfr_oper(i,8) = tab_mfr(i,12)
-        tab_mfr_oper(i,9) = tab_mfr(i,13)
-        tab_mfr_oper(i,10) = tab_mfr(i,14)
-        tab_mfr_oper(i,11) = tab_mfr(i,15)
-        tab_mfr_oper(i,12) = tab_mfr(i,17)
-        tab_mfr_oper(i,13) = tab_mfr(i,19)
-        tab_mfr_oper(i,14) = tab_mfr(i,21)
-        tab_mfr_oper(i,15) = tab_mfr(i,27)
-        tab_mfr_oper(i,16) = tab_mfr(i,29)
-    end do
-    
-    ! this array stores each of the constants of the W polynomials from paper 1501.03729's appendix individually
-    ! array index m handles the 8 varients of the W functions in order [M, S", S', P", MP", P', Delta, S'Delta]
-    ! index i handles the 16 isotopes [H, He3, He4, C12, N14, O16, Ne20, Na 23, Mg24, Al27, Si28, S32, Ar40, Ca40, Fe56, Ni58]
-    ! index j & k handle the two superscripts for each W function, each taking values of 0 and 1
-    ! index L determines the power of each constant ranging from y^0 to y^6
-    do m=1,8
-        do i=1,16
-            do j=1,2
-                do k=1,2
-                    do l=1,7
-                        if (m.eq.1) then
-                            W_array(m,i,j,k,l) = WM(j-1,k-1,isotopes(i),terms(l))
-                        else if (m.eq.2) then
-                            W_array(m,i,j,k,l) = WS2(j-1,k-1,isotopes(i),terms(l))
-                        else if (m.eq.3) then
-                            W_array(m,i,j,k,l) = WS1(j-1,k-1,isotopes(i),terms(l))
-                        else if (m.eq.4) then
-                            W_array(m,i,j,k,l) = WP2(j-1,k-1,isotopes(i),terms(l))
-                        else if (m.eq.5) then
-                            W_array(m,i,j,k,l) = WMP2(j-1,k-1,isotopes(i),terms(l))
-                        else if (m.eq.6) then
-                            W_array(m,i,j,k,l) = WP1(j-1,k-1,isotopes(i),terms(l))
-                        else if (m.eq.7) then
-                            W_array(m,i,j,k,l) = WD(j-1,k-1,isotopes(i),terms(l))
-                        else
-                            W_array(m,i,j,k,l) = WS1D(j-1,k-1,isotopes(i),terms(l))
-                        end if
-                    end do
-                end do
-            end do
-        end do
-    end do
+    ! attributes(global) subroutine captn_kernel(mx_in, jx_in, niso_in, isotopeChosen, capped)
+    !     implicit none
+    !     integer, value :: niso_in, isotopeChosen
+    !     double precision, value :: mx_in, jx_in
+    !     double precision, value :: capped !this is the output
 
-    ! initiate the coupling_Array (full of the coupling constants) with all zeros
-    ! populate_array will place the non-zero value into a chosen slot at runtime
-    coupling_Array = reshape((/0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, &
-                                0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0, 0d0/), (/14, 2/))
-end subroutine captn_init_oper
+    !     captn_oper(mx_in, jx_in, niso_in, isotopeChosen, capped)
+
+    ! end subroutine captn_kernel
+
+    subroutine captn_oper_gpu(mx_in, jx_in, niso_in, isotopeChosen, capped)
+        implicit none
+        integer :: niso_in, isotopeChosen
+        double precision :: mx_in, jx_in
+        double precision :: capped !this is the output
+        ! dim3 variables to define the grid and block shapes
+        type(dim3) :: dimGrid, dimBlock
+        integer :: r
+
+        dimGrid = dim3( 1, 1, 1 )
+        dimBlock = dim3( 2, 2, 7 )
+        call captn_oper_kernel<<<dimGrid,dimBlock>>>( mx_in, jx_in, niso_in, isotopeChosen, capped )
+        r = cudathreadsynchronize()
+    end subroutine captn_oper_gpu
+end module gpumod
 
 !   this is the integral over R in eqn 2.3 in 1501.03729
-function integrand_oper(u)
-    use opermod
+attributes(device) function integrand_oper(u)
+    use gpumod
     implicit none
     double precision :: u, w, vesc, integrand_oper, int
     vesc = tab_vesc(ri_for_omega)
@@ -366,13 +325,13 @@ end function integrand_oper
 
 
 !   Need to pass all the operators into the subroutine
-subroutine captn_oper(mx_in, jx_in, niso_in, isotopeChosen, capped)
-    use opermod
+attributes(global) subroutine captn_oper_kernel(mx_in, jx_in, niso_in, isotopeChosen, capped)
+    ! use gpumod
     implicit none
-    integer, intent(in):: niso_in, isotopeChosen
+    integer, intent(in), value :: niso_in, isotopeChosen
     integer i, ri
-    double precision, intent(in) :: mx_in, jx_in
-    double precision :: capped, maxcap !this is the output
+    double precision, intent(in), value :: mx_in, jx_in
+    double precision, value :: capped !this is the output
      ! array of coupling constants
     double precision :: epsabs, epsrel,limit,result,abserr,neval !for integrator
     double precision :: ier,alist,blist,rlist,elist,iord,last!for integrator
@@ -426,39 +385,3 @@ subroutine captn_oper(mx_in, jx_in, niso_in, isotopeChosen, capped)
       infinite amount of dark matter in the Sun. Best to look into that."
     end if
 end subroutine captn_oper
-
-subroutine populate_array(val, couple, isospin)
-    ! in the 1501.03729 paper, the non-zero values chosen were 1.65*10^-8 (represented as 1.65d-8 in the code)
-    ! I was trying to directly edit 'couple' and 'isospin' to use in the array indices, but Fortran was throwing segfaults when doing this
-    ! might want a way to quit out of subroutine early if error is reached
-    use opermod
-    implicit none
-    integer :: couple, isospin
-    double precision :: val
-    integer :: cpl, iso
-
-    ! isospin can be 0 or 1
-    if ((-1.lt.isospin).and.(isospin.lt.2)) then
-        iso = isospin + 1 !fortran arrays start at 1
-    else
-        print*,"Error: isospin can only be 0 or 1!"
-    endif
-
-
-    ! couple can be integer from 1 to 15, BUT 2 IS NOT ALLOWED!
-    if (couple.lt.1) then
-        print*,"Error: you cannto pick a coupling constant lower than one!"
-    else if (couple.eq.1) then
-        cpl = couple
-    else if (couple.eq.2) then
-        print*,"Error: you cannot use the second coupling constant!"
-    else if (couple.gt.2) then
-        cpl = couple - 1 !the coupling array doesn't have a slot for 2, so all constants other than one are shifted in row number
-    else if (couple.gt.15) then
-        print*,"Error: you cannot pick a coupling constant past 15!"
-    endif
-
-    ! val is the value you want to populate with
-    ! set the value picked in the slot chosen
-    coupling_Array(cpl,iso) = val
-end subroutine populate_array
