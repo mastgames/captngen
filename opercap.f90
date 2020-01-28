@@ -356,7 +356,6 @@ end subroutine captn_init_oper
 !   this is the integral over R in eqn 2.3 in 1501.03729
 function integrand_oper(u)
     use opermod
-    use gpumod
     implicit none
     double precision :: u, w, vesc, integrand_oper, int
     vesc = tab_vesc(ri_for_omega)
