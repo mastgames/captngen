@@ -382,8 +382,8 @@ subroutine captn_oper(mx_in, jx_in, niso_in, isotopeChosen, capped)
     !external gausstest !this is just for testing
     external integrand_oper
     external dummyf
-    epsabs=1.d-17
-    epsrel=1.d-17
+    epsabs=1.d-8!1.d-17 ! tweak the accuracy of the integral
+    epsrel=1.d-8!1.d-17
     limit=1000
 
     mdm = mx_in
