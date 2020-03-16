@@ -5,7 +5,7 @@ QAGDIR = ./numerical/dqag
 WDIR = ./Wfunctions
 RDIR = ./Rfunctions
 
-MAIN = mainOper.o
+MAIN = mainIntegrand.o
 MFSHR = sharedcap.o
 MFOBJ = gencap.o
 MFCAP = opercap.o
@@ -15,8 +15,8 @@ WFUNC = WM.o WS2.o WS1.o WP2.o WMP2.o WP1.o WD.o WS1D.o
 RFUNC = RM.o RS2.o RS1.o RP2.o RMP2.o RP1.o RD.o RS1D.o
 
 
-gentest.x: $(MAIN) $(MFSHR) $(MFOBJ) $(MFCAP) $(NUMOBJ) $(QAG) $(WFUNC) $(RFUNC)
-	${FC} $(FOPT) -o gentest.x $(MAIN) $(MFSHR) $(MFOBJ) $(MFCAP) $(NUMOBJ) $(QAG) $(WFUNC) $(RFUNC)
+gentest.x: $(MFSHR) $(MFOBJ) $(MFCAP) $(NUMOBJ) $(QAG) $(WFUNC) $(RFUNC) $(MAIN)
+	${FC} $(FOPT) -o gentest.x $(MFSHR) $(MFOBJ) $(MFCAP) $(NUMOBJ) $(QAG) $(WFUNC) $(RFUNC) $(MAIN)
 
 
 gencaplib.so: $(MFSHR) $(MFOBJ) $(MFCAP) $(NUMOBJ) $(QAG) $(WFUNC) $(RFUNC)
