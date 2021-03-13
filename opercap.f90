@@ -198,6 +198,7 @@ subroutine captn_oper(mx_in, jx_in, niso, capped)!, isotopeChosen)
     end if
     allocate(u_int_res(nlines))
 
+    !$OMP PARALLEL DO default(NONE) shared(niso, prefactor_array) private(q_pow, w_pow)
     do eli = 1, niso
         do q_pow = 1, 11
             do w_pow = 1, 2
@@ -205,9 +206,15 @@ subroutine captn_oper(mx_in, jx_in, niso, capped)!, isotopeChosen)
             end do
         end do
     end do
+    !$OMP END PARALLEL DO
 
     ! First I set the entries in prefactor_array(niso,11,2)
     ! These are the constants that mulitply the corresonding integral evaluation
+    !$OMP PARALLEL DO default(NONE) &
+    !$OMP shared(mdm, W_array, j_chi, coupling_Array, &
+    !$OMP   yConverse_array, prefactor_array) &
+    !$OMP private(a, mu_T, funcType, q_functype, prefactor_functype, tau, taup, term_W, WFuncConst, term_R, RFuncConst, q_index, &
+    !$OMP   prefactor_current)
     do eli=1,niso !isotopeChosen, isotopeChosen
         ! I'll need mu_T to include in the prefactor when there is a v^2 term
         a = AtomicNumber_oper(eli)
@@ -295,10 +302,16 @@ subroutine captn_oper(mx_in, jx_in, niso, capped)!, isotopeChosen)
             end do !tau
         end do !functype
     end do !eli
+    !$OMP END PARALLEL DO
 
     ! now with all the prefactors computed, any 0.d0 entries in prefactor_array means that we can skip that integral evaluation!
     capped = 0.d0
     umin = 0.d0
+    !$OMP PARALLEL DO default(NONE) &
+    !$OMP shared(nlines, tab_vesc, vesc_shared_arr, niso, u_int_res, mdm, vesc_halo, &
+    !$OMP   prefactor_array, umin, tab_starrho, tab_mfr_oper, tab_r, tab_dr, capped) &
+    !$OMP private(vesc, rindex_shared, eli, a, a_shared, mu, muplus, muminus, J, umax, w_pow, w_shared, q_pow, result, q_shared, &
+    !$OMP   epsabs,epsrel,limit,abserr,neval,ier,alist,blist,rlist,elist,iord,last, factor_final)
     do ri=1,nlines
         vesc = tab_vesc(ri)
         rindex_shared = ri !make accessible via the module
@@ -343,6 +356,7 @@ subroutine captn_oper(mx_in, jx_in, niso, capped)!, isotopeChosen)
             capped = capped + u_int_res(ri) * factor_final
         end do !eli
     end do !ri
+    !$OMP END PARALLEL DO
 
     capped = 4.d0*pi*Rsun**3*capped
 
