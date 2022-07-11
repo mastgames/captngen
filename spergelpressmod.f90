@@ -65,7 +65,7 @@ implicit none
 integer, intent(in) :: niso
 double precision, intent(in) :: T_x, Nwimps
 double precision, intent(in) :: sigma_N(niso)
-double precision :: n_0, mxg
+double precision :: n_0, mxg, A
 double precision :: R(nlines), phi(nlines), n_nuc(niso,nlines)
 double precision :: n_x(nlines), species_indep(nlines), species_dep(nlines), sigma_nuc(niso)
 double precision :: Etrans_sp(nlines)
@@ -88,8 +88,18 @@ sigma_nuc = 2.d0*sigma_N ! Total WIMP-nucleus cross section in cm^2v. Only works
 ! isothermal WIMP number density in cm^-3.
 n_x = nx_isothermal(T_x, Nwimps)
 
+if (nv .eq. 0) then
+	A = 8.d0
+else if ((nv .eq. 1)) then
+	A = 48.d0
+else if ((nv .eq. 2)) then
+	A = 384.d0
+else if ((nv .eq. -1)) then
+	A = 2.d0
+end if
+
 ! Separate calc into species dependent and independent factors
-species_indep = 8.0d0*sqrt(2.d0/pi)*kB**(3.d0/2.d0)*n_x*(T_x-tab_T)/tab_starrho ! The species independent part
+species_indep = A*sqrt(2.d0/pi)*kB**(3.d0/2.d0)*n_x*(T_x-tab_T)/tab_starrho ! The species independent part
 
 ! Now sum over species to get the species dependent factor
 species_dep=0.d0
