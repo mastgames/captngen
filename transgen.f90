@@ -353,7 +353,7 @@ select case (transport_formalism)
 		! The functions of interest are in spergelpressmod.f90. These also use https://arxiv.org/pdf/0809.1871.pdf
 
 		if (nq .ne. 0) then 
-			stop "Spergel-Press heat tranport formalism can't handle momentum/velocity-dependent cross sections." 
+			stop "Spergel-Press heat tranport formalism can't handle momentum-dependent cross sections." 
 		endif
 
 		! Etrans in erg/g/s (according to Spergel Press)

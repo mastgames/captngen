@@ -223,18 +223,14 @@ do while (error > reltolerance)
 	
 
 	if (f3 == 0.d0) then
-		print*, "f3"
 		exit
 	else if (f1*f3 .gt. 0) then ! if f1 and f3 have the same sign
-		print*, "f1"
 		x_1 = x_3
 	else if (f2*f3 .gt. 0) then
-		print*, "f2"
 		x_2 = x_3
 	endif
 	error = abs(x_2-x_1)/x_2
 	i = i + 1
-print*, error, reltolerance, i
 enddo
 
 binary_search = x_3
