@@ -35,7 +35,8 @@ d = int(mdm)/5
 !print*, 'nx_iso here'
 ! WIMP number density in isothermal approximation
 
-nx_isothermal = exp(-mxg*phi/kB/T_x/2)
+nx_isothermal = exp(-mxg*(phi-phi(1))/kB/T_x)  !the minus phi(1) fix makes the same results for 5 GeV
+
 
 open(80, file = "NXISO.csv")
 
