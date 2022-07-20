@@ -233,7 +233,7 @@ guess_1 = maxval(tab_T)*1.1d0 ! One-zone WIMP temp guesses in K.
 guess_2 = maxval(tab_T)/10.d0
 reltolerance = 1.0d-6
 
-print*, 'transgen here'
+
 ! newtons_meth finds the one-zone wimp temp that gives 0 total transported energy in Spergel-Press scheme
 Tx = binary_search(Tx_integral, sigma_N, Nwimps, niso, guess_1, guess_2, reltolerance) ! defined in spergelpressmod.f90
 ! Using Spergel-Press nxIso in Gould-Raffelt scheme gives numerical problems, but ideally we would use it.
@@ -352,7 +352,7 @@ select case (transport_formalism)
 		! The Spergel-Press heat transport scheme: articles.adsabs.harvard.edu/pdf/1985ApJ...294..663S
 		! The functions of interest are in spergelpressmod.f90. These also use https://arxiv.org/pdf/0809.1871.pdf
 
-		if ((nq .ne. 0) .or. (nv .ne. 0)) then 
+		if (nq .ne. 0) then 
 			stop "Spergel-Press heat tranport formalism can't handle momentum/velocity-dependent cross sections." 
 		endif
 

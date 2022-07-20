@@ -99,16 +99,22 @@ else if ((nv .eq. -1)) then
 end if
 
 ! Separate calc into species dependent and independent factors
-species_indep = A*sqrt(2.d0/pi)*kB**(3.d0/2.d0)*n_x*(T_x-tab_T)/tab_starrho ! The species independent part
+species_indep = A/tab_starrho*sqrt(2.d0/pi)*kB**(3.d0/2.d0 + nq + nv)*n_x*(T_x-tab_T)
 
 ! Now sum over species to get the species dependent factor
 species_dep=0.d0
+! do i=1,niso
+! 	species_dep = species_dep + sigma_nuc(i)*n_nuc(i,:)*mxg*mnucg*AtomicNumber(i)/((mxg+mnucg*AtomicNumber(i))**2)* &
+! 		(tab_T/(mnucg*AtomicNumber(i)) + T_x/mxg)**(1.d0/2.d0 + nq + nv)*A*sqrt(2.d0/pi)*kB**(3.d0/2.d0 + nq + nv)*n_x*(T_x-tab_T)/tab_starrho
+! enddo
+
 do i=1,niso
-	species_dep = species_dep + sigma_nuc(i)*n_nuc(i,:)*mxg*mnucg*AtomicNumber(i)/((mxg+mnucg*AtomicNumber(i))**2)* &
-		sqrt(tab_T/(mnucg*AtomicNumber(i)) + T_x/mxg)
+	species_dep = species_dep + sigma_nuc(i)/(v0**(2.d0*(nq+nv)))*mxg*mnucg*AtomicNumber(i)/((mxg+mnucg*AtomicNumber(i))**2)* &
+		n_nuc(i,:)*(tab_T/(mnucg*AtomicNumber(i)) + T_x/mxg)**(1.d0/2.d0 + nq + nv)
 enddo
 
 Etrans_sp = species_indep*species_dep ! erg/g/s
+!Etrans_sp = species_dep  ! erg/g/s
 
 !! Useful when troubleshooting
 !open(55, file="/home/luke/summer_2021/mesa/test_files/Etrans_sp_params.txt")
@@ -202,16 +208,13 @@ error = reltolerance + 1.d0	! So that the first iteration is executed
 i = 0
 
 !print*, error, reltolerance
-print*, 'binary here' ! the loop below calls the Tx_integral function
+! the loop below calls the Tx_integral function
 do while (error > reltolerance)
 	x_3 = (x_1 + x_2)/2.d0
 	!print*, 'got here'
 	f1 = f(x_1, sigma_N, Nwimps, niso)
 	
-	print*, "f2"
 	f2 = f(x_2, sigma_N, Nwimps, niso)    !this causes issues when mx > 8
-	print*, f2
-	call sleep(10)
 
 	f3 = f(x_3, sigma_N, Nwimps, niso)
 	

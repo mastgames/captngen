@@ -18,7 +18,7 @@
     character (len=5) :: cplConsts(14) = [character(len=5) :: "c1-0", "c3-0", "c4-0", "c5-0", "c6-0", "c7-0", &
                         "c8-0", "c9-0", "c10-0", "c11-0", "c12-0", "c13-0", "c14-0", "c15-0"]
 
-	transport_formalism = 1 ! 1=Gould & Raffelt, 2=Spergel & Press, 3=Rescaled Spergel & Press
+	transport_formalism = 2 ! 1=Gould & Raffelt, 2=Spergel & Press, 3=Rescaled Spergel & Press
 	
     ! Choose velocity and momentum transfer powers in differential cross-section
     nq = [0,-1,1,2,0,0,0]
@@ -54,7 +54,7 @@
       write(94,*) "Sigma_0 | ", "DM Mass | ", "Capptured Dark Matter | ", "Etranstot"
       do i = 1,1
         mx = 10.d0 !dble(i)/5.   currently mx breaks at like 8 Gev
-        sigma_0 = 10.d0**(-35.d0)!10d0**(-45+dble(i)/2.)
+        sigma_0 = 10.d0**(-36.d0)!10d0**(-45+dble(i)/2.)
         print*
         print*, "mx: ", mx, "sigma_0:", sigma_0, "cm^2"
 
@@ -76,7 +76,7 @@
         nwimpsin = 5.d44
         ! nwimpsin = capped_sd*3.d7*4.57d9
         ! print*,"Calling transgen, with nwimpsin = ", nwimpsin
-        print*, 'main here'
+
         call transgen(sigma_0,nwimpsin,num_isotopes,nq(j),nv(j),spin_dependency,transport_formalism, &
         	Tx,noise_indicator,Etrans,Etranstot)
         ! print*, "Etranstot: ", Etranstot !FIXME units?
