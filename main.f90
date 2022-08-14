@@ -46,15 +46,15 @@
     call get_alpha_kappa(nq,nv)
     
 
-    do j = 5,5
+    do j = 1,1
       open(94,file = outfile(j))
       write(94,*) "Number of Isotopes: ", num_isotopes
       write(94,*) "Spin Dependency: ", spin_dependency
       write(94,*) "Power: ", outfile(j)
       write(94,*) "Sigma_0 | ", "DM Mass | ", "Capptured Dark Matter | ", "Etranstot"
       do i = 1,1
-        mx = 10.d0 !dble(i)/5.   currently mx breaks at like 8 Gev
-        sigma_0 = 10.d-36!10d0**(-45+dble(i)/2.)
+        mx = 10.d0 !dble(i)/5.   
+        sigma_0 = 5.d-36 !10d0**(-45+dble(i)/2.)
         print*
         print*, "mx: ", mx, "sigma_0:", sigma_0, "cm^2"
 

@@ -142,7 +142,8 @@ end do
 !need separate zeta factors for q- and v- dependent interactions
 do i = 1,nlines
   zeta_q(i) = q0_cgs/(mxg*sqrt(2.d0*kB*tab_T(i)/mxg))
-  zeta_v(i) = v0/(sqrt(2.d0*kB*tab_T(i)/mxg))
+  zeta_v(i) = v0/(sqrt(2.d0*kB*tab_T(i)/mxg)) ! previous zeta
+  ! zeta_v(i) = 1.d0/(kB*tab_T(i)/mxg/v0**2)  ! new test
 end do
 
 ! mean free path calcs for each nq,nv case here
@@ -167,21 +168,22 @@ else if ((nq .eq. -1)) then
   end do
 else if ((nv .eq. 1)) then
   do i = 1,nlines
-    mfp(i) = 1./sum(nabund(:,i)*sigma_N*(1.+muarray)*3./2./(zeta_v(i)**2))
+    mfp(i) = 1./sum(2*nabund(:,i)*sigma_N*(1.+muarray)*3./2./(zeta_v(i)**2))  ! extra 2 fixes K but I don't know why
   end do
 else if ((nv .eq. 2)) then
   do i = 1,nlines
-    mfp(i) = 1./sum(nabund(:,i)*sigma_N*((1.+muarray)**2)*15./4./(zeta_v(i)**4))
+    mfp(i) = 1./sum(2*nabund(:,i)*sigma_N*((1.+muarray)**2)*15./4./(zeta_v(i)**4))  ! extra 2 fixes K but I don't know why
   end do
 else if ((nv .eq. -1)) then
   do i = 1,nlines
-    mfp(i) = 1./sum(nabund(:,i)*sigma_N*2*zeta_v(i)**2/(1.+muarray))
+    mfp(i) = 1./sum(2*nabund(:,i)*sigma_N*2*zeta_v(i)**2/(1.+muarray))  ! extra 2 fixes K but I don't know why
+	!mfp(i) = 1./sum(nabund(:,i)*sigma_N*zeta_v(i)/(1.+muarray))
   end do
 end if
 
 rchi = (3.*(kB*Tc)/(2.*pi*GN*rhoc*mxg))**.5;
 K = mfp(1)/rchi;
-!print *, K
+print *, K
 !K = 1;
 
 ! this loop does a number of things: gets alpha and kappa averages (average over isotopes) to get alpha(r), kappa(r),
@@ -351,10 +353,6 @@ select case (transport_formalism)
 
 		! The Spergel-Press heat transport scheme: articles.adsabs.harvard.edu/pdf/1985ApJ...294..663S
 		! The functions of interest are in spergelpressmod.f90. These also use https://arxiv.org/pdf/0809.1871.pdf
-
-		if (nq .ne. 0) then 
-			stop "Spergel-Press heat tranport formalism can't handle momentum-dependent cross sections." 
-		endif
 
 		! Etrans in erg/g/s (according to Spergel Press)
 		Etrans = Etrans_sp(Tx, sigma_N, Nwimps, niso) ! erg/g/s
