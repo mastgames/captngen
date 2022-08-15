@@ -229,18 +229,18 @@ error = reltolerance + 1.d0	! So that the first iteration is executed
 ! Binary search loop
 i = 0
 
-!print*, error, reltolerance
+print*, "here"
 ! the loop below calls the Tx_integral function
 do while (error > reltolerance)
 	x_3 = (x_1 + x_2)/2.d0
-	!print*, 'got here'
+	print*, error, reltolerance
 	f1 = f(x_1, sigma_N, Nwimps, niso)
 	
-	f2 = f(x_2, sigma_N, Nwimps, niso)    !this causes issues when mx > 8
+	f2 = f(x_2, sigma_N, Nwimps, niso)
 
 	f3 = f(x_3, sigma_N, Nwimps, niso)
 	
-
+	print*, f1,f2,f3
 	
 
 	if (f3 == 0.d0) then
@@ -253,6 +253,8 @@ do while (error > reltolerance)
 	error = abs(x_2-x_1)/x_2
 	i = i + 1
 enddo
+
+
 
 binary_search = x_3
 

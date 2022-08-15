@@ -362,6 +362,7 @@ select case (transport_formalism)
 		! Calculate Ltrans
 		do i=1,nlines
 			Ltrans(i) = trapz(tab_r*Rsun, 4.d0*pi*(tab_r*Rsun)**2.d0*Etrans*tab_starrho, i)
+			print*, Ltrans(i)
 			write(5,*) i, Ltrans(i)
 		enddo
 
